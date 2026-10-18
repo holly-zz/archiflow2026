@@ -19,6 +19,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Verify responsive studio JavaScript
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          page = Path("response-studio/index.html").read_text(encoding="utf-8")
+          assert "<svg" in page and "MOORE_Response_Project.json" in page
+          scripts = re.findall(r"<script>(.*?)</script>", page, re.S)
+          assert len(scripts) == 1
+          Path("/tmp/archiflow-response.js").write_text(scripts[0], encoding="utf-8")
+          PY
+          node --check /tmp/archiflow-response.js
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
