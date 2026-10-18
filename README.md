@@ -1,34 +1,34 @@
-# ArchiFlow 2026 | MOORE Architectural Technology Studio
+# ArchiFlow 2026 — Unified Architectural Technology Studio V8
 
-A GitHub Pages student studio for evidence-based architectural research and responsive design.
+**One project · one studio interface · one architectural design brief.**
 
-## Student entry points
+- **Student website:** https://holly-zz.github.io/archiflow2026/
+- **Source:** https://github.com/holly-zz/archiflow2026/blob/main/index.html
+- No external CDN or framework is needed to operate the student workflow offline after saving the `index.html` file.
 
-- [01: Site research and architectural brief](https://holly-zz.github.io/archiflow2026/) — students choose a topic, verify a real site, select a design unit and edit its programme.
-- [02: Responsive Design Studio (V7)](https://holly-zz.github.io/archiflow2026/response-studio/) — environment-to-response rules, Low/Mid/High technology, A/B/C plan studies, linked axonometric massing, dynamic response components and editable exports.
-- [Legacy Plan + Massing Studio](https://holly-zz.github.io/archiflow2026/next-design-studio/) — previous concept plan and massing editor.
+## Student workflow (single continuous programme stage)
 
-## Student workflow
+1. Students select research concerns, users, environmental conditions, and a real study site.
+2. Review source-linked site findings and explicit evidence gaps. Select a building/spatial intervention unit.
+3. Under **08 建筑单元与任务书**, edit WHAT / WHO / WHERE / FUNCTIONS.
+4. Continue **on the same page** to **05 环境响应 → 06 平面与体块 → 07 机制模拟 → 08 方案对比与交付**.
+5. The architectural programme room table and the responsive plan room editor update one another; layout choices update the project model.
+6. Download exactly **one** `ArchiFlow_Architectural_Design_Brief_v8.md` combining the site and user research, programme and room areas, response strategy, schematic plan, technical mechanism, failure concerns, validation and evidence status.
+7. Save a complete **`ARCHIFLOW_UNIFIED_V8`** project JSON containing both project research state and geometry/technical settings. JSON can be imported in the same page.
+8. Other exports: editable A3 SVG, R12-style DXF concept plan (millimetres) and OBJ concept masses (metres).
 
-1. Select a real site and record source-linked evidence.
-2. Define **WHAT / WHO / WHERE / WHY / FUNCTIONS** and select a building or spatial unit.
-3. Click **「新功能 / 环境响应 + 平面 + 机制实验」** under the programme export area. The selected site, user and enabled rooms are handed to the Response Studio.
-4. Compare passive, manual and sensor-driven response strategies.
-5. Compare compact / linear / separated plan arrangements; edit and drag room modules; inspect overlapping/overflowing zones.
-6. Adjust the environment *scenario index* and mechanism angle; observe geometric response in the axonometric model.
-7. Save alternatives and export A3 SVG, conceptual DXF (millimetres), OBJ, Markdown brief, and editable project JSON.
+## Architecture of the release
 
-## Evidence and engineering boundaries
+The root `index.html` is now the **single student application**, including the previous built-in response engine. The old `response-studio/` address redirects to the root. The legacy `next-design-studio/` remains for backwards compatibility, but it is not the primary course pathway.
 
-- `[G]` = attributable source evidence; `[H]` = design or classroom assumption; `[V]` = field investigation or professional calculation required.
-- Default plot dimensions are **not** cadastral survey; room sizes are **not** regulatory requirements.
-- The 0–100 scenario index is **not** recorded climate data. The dynamic geometry demonstrates control logic, **not** verified thermal, wind, daylight, structure or flood performance.
-- Real GIS acquisition and professional simulation are not supplied by this static GitHub Pages application.
-- No cloud model or API key is needed for the deterministic student workflow. Real-time AI research and data services require a separate protected backend.
-- Allow non-building and adaptive reuse strategies as valid design outcomes.
+### Limitations and academic reliability
+
+- `[G]`: attributable evidence with a source; `[H]`: design assumption; `[V]`: requires field/professional verification.
+- Concept room area, conceptual plot and environmental slider do not imply measured site bounds, regulatory compliance, energy/CFD performance, structural safety, medical protocols or species welfare certification.
+- Offline operation covers selection, cached/embedded example site research, design rule comparisons, functional planning and file export. Live model calls and live official GIS downloads require online protected services.
+- This classroom prototype exports simplified rectangular room layouts, not architectural construction documents.
+- Students should compare non-building alternatives and adaptive reuse before assuming construction is necessary.
 
 ## Deployment
 
-GitHub Actions deploys the repository to GitHub Pages on pushes to `main`. The workflow runs a JavaScript syntax check for the responsive studio before publishing.
-
-**Version:** V7 classroom prototype. The Response Studio is an editable architectural concept lab, not a CAD/BIM-compliance engine.
+GitHub Actions deploys `main` to Pages and checks syntax of both embedded JavaScript blocks in the unified `index.html`.
