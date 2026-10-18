@@ -1,32 +1,34 @@
-# MOORE Site-to-Program Studio v6 — GitHub Pages deployment
+# ArchiFlow 2026 | MOORE Architectural Technology Studio
 
-学生可访问的建筑研究与方案推敲工具：自由选择研究议题与场地、场地事实/假设登记、建筑单元配置、功能面积表、概念平面与三维体块、文件导出。
+A GitHub Pages student studio for evidence-based architectural research and responsive design.
 
-## 部署
+## Student entry points
 
-1. 在 GitHub 新建一个 **Public** 仓库，建议命名 `moore-site-to-program`，创建时勾选 README 或不勾选均可。
-2. 上传本目录的所有文件，尤其是 `index.html`、`next-design-studio/index.html` 和 `.github/workflows/deploy.yml`，推送到 `main` 分支。
-3. 进入仓库 **Settings → Pages → Build and deployment → Source**，选择 **GitHub Actions**。
-4. 进入 **Actions** 查看 `Deploy MOORE Site-to-Program to GitHub Pages` 工作流是否成功。若本次更新已触发部署而失败，请点击 **Run workflow** 再试一次。
-5. 对于用户名 `holly-zz` 且仓库名称 `moore-site-to-program`，网站路径应为 `https://holly-zz.github.io/moore-site-to-program/`，请以 GitHub Pages 实际显示的地址为准，成功发布前勿当作有效网站。
+- [01: Site research and architectural brief](https://holly-zz.github.io/archiflow2026/) — students choose a topic, verify a real site, select a design unit and edit its programme.
+- [02: Responsive Design Studio (V7)](https://holly-zz.github.io/archiflow2026/response-studio/) — environment-to-response rules, Low/Mid/High technology, A/B/C plan studies, linked axonometric massing, dynamic response components and editable exports.
+- [Legacy Plan + Massing Studio](https://holly-zz.github.io/archiflow2026/next-design-studio/) — previous concept plan and massing editor.
 
-## 功能与边界
+## Student workflow
 
-- 这是 **静态前端**，无须学生配置 API 密钥，可以运行本地卡片选择、已登记场地研究摘要、建筑单元表、概念平面/体块及 SVG/DXF/OBJ/Markdown/JSON 下载。
-- `Kimi` 自动推荐和实时联网的 `/api/*` 接口 **不会**因为部署到 GitHub Pages 就启用。按钮失败时应使用“复制提示词”到学生自己的模型，或另行搭建经授权的 API 服务器。严禁将密钥写进静态网页。
-- 研究报告中的历史资料索引**不等于**实时检索；GeoJSON 要由用户导入并核验坐标系与来源。
-- 平面与体块是教学概念模型，概念尺寸不是实测用地红线、消防规范或施工参数。
-- 学生操作状态主要在浏览器 `localStorage` 中；同一台共享电脑请及时导出项目 JSON，浏览器清理或更换设备可能丢失进度。
+1. Select a real site and record source-linked evidence.
+2. Define **WHAT / WHO / WHERE / WHY / FUNCTIONS** and select a building or spatial unit.
+3. Click **「新功能 / 环境响应 + 平面 + 机制实验」** under the programme export area. The selected site, user and enabled rooms are handed to the Response Studio.
+4. Compare passive, manual and sensor-driven response strategies.
+5. Compare compact / linear / separated plan arrangements; edit and drag room modules; inspect overlapping/overflowing zones.
+6. Adjust the environment *scenario index* and mechanism angle; observe geometric response in the axonometric model.
+7. Save alternatives and export A3 SVG, conceptual DXF (millimetres), OBJ, Markdown brief, and editable project JSON.
 
-## 结构
+## Evidence and engineering boundaries
 
-```
-index.html                       # 选择研究方向、选址、研究与建筑单元
-next-design-studio/index.html    # 平面推敲与三维体块
-.github/workflows/deploy.yml     # Pages 自动部署
-.nojekyll                        # 禁用 Jekyll 预处理
-```
+- `[G]` = attributable source evidence; `[H]` = design or classroom assumption; `[V]` = field investigation or professional calculation required.
+- Default plot dimensions are **not** cadastral survey; room sizes are **not** regulatory requirements.
+- The 0–100 scenario index is **not** recorded climate data. The dynamic geometry demonstrates control logic, **not** verified thermal, wind, daylight, structure or flood performance.
+- Real GIS acquisition and professional simulation are not supplied by this static GitHub Pages application.
+- No cloud model or API key is needed for the deterministic student workflow. Real-time AI research and data services require a separate protected backend.
+- Allow non-building and adaptive reuse strategies as valid design outcomes.
 
-## 本地预览
+## Deployment
 
-在项目目录使用 `python -m http.server 8080`，打开 `http://localhost:8080/`。也可以打开根目录 `index.html`，但托管在 HTTP 服务下更接近生产环境。
+GitHub Actions deploys the repository to GitHub Pages on pushes to `main`. The workflow runs a JavaScript syntax check for the responsive studio before publishing.
+
+**Version:** V7 classroom prototype. The Response Studio is an editable architectural concept lab, not a CAD/BIM-compliance engine.
