@@ -190,7 +190,7 @@ function programPlanSVG(p,full=false){const rooms=p.rooms.filter(r=>r.enabled).s
  let head=full?`<text x="95" y="88" font-size="39" font-weight="800" fill="#213a35">${escapeHtml(programTitle(p))}</text><text x="95" y="127" font-size="19" fill="#b65e37">${escapeHtml(programLocation(p).slice(0,65))}</text>`:'';
  let foot=full?`<text x="95" y="1010" font-size="21" fill="#213a35">A / CONCEPT FUNCTION DIAGRAM  ·  ${escapeHtml(p.scheme)}  ·  ${programTotal(p)} m² (editable assumptions)</text><text x="95" y="1062" font-size="18" fill="#a64d32">NOT SURVEYED · NOT A BUILDING CODE / CONSTRUCTION PLAN</text>`:'';
  return `<svg xmlns="http://www.w3.org/2000/svg" width="${full?'420mm':'100%'}" height="${full?'297mm':'auto'}" viewBox="0 0 ${W} ${H}" role="img" aria-label="概念功能分区图"><rect width="${W}" height="${H}" fill="#f3f1eb"/>${head}${body}${foot}</svg>`}
-function programBrief(){const p=programForSite(),meta=UNIT_CATALOG.find(x=>x.id===p.unit),r=state.research[state.confirmed?.name||'']||null,rooms=p.rooms.filter(x=>x.enabled);const missing=!r?.verified?.length;return `# ${programTitle(p)}｜空间设计任务书 V0.6
+function programBrief(){const p=programForSite(),meta=UNIT_CATALOG.find(x=>x.id===p.unit),r=state.research[state.confirmed?.name||'']||null,rooms=p.rooms.filter(x=>x.enabled);const missing=!r?.verified?.length;return `# ${programTitle(p)}｜建筑新技术 · 统一建筑设计任务书 V8
 
 > 课程概念研究任务书；建筑类型、功能规模、图式属于学生可编辑设计假设，不代表获准建设或符合规范。
 
