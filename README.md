@@ -32,3 +32,12 @@ The root `index.html` is now the **single student application**, including the p
 ## Deployment
 
 GitHub Actions deploys `main` to Pages and checks syntax of both embedded JavaScript blocks in the unified `index.html`.
+
+## V9 — 我的项目 / 历史恢复
+
+- 右上角及左侧导航有「📁 我的项目 / 历史」入口。
+- 支持浏览器自动保存、多个项目切换、最近 16 个历史快照、命名版本和「撤销误操作」。
+- 支持导入旧版 Markdown 任务书（仅恢复可解析文字与功能面积）及 V6/V7/V8/V9 项目 JSON。
+- 可备份完整项目 JSON，或备份全部本机项目与历史以便迁移设备。
+- 所有操作在本机运行，不要求联网或云端账号。网页本地存储与离线 file://、不同电脑/浏览器 **不自动同步**；请定期导出 JSON。
+- 学生的统一任务书和响应式设计仍在同一个 `index.html`，没有第二份正式任务书。
