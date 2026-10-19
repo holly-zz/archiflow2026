@@ -402,4 +402,105 @@ window.unifiedResponseAPI={sync:syncProgram,chapter:responseChapter,pack,restore
 try{const prior=JSON.parse(localStorage.getItem('moore-archiflow-offline-v7')||'null');if(prior&&prior.format==='ARCHIFLOW_OFFLINE_V7')fromPack(prior);else newRooms()}catch{newRooms()}draw();if(state.step===7)renderProgram();
 })();
 </script>
+<script>
+/* ARCHIFLOW_PROJECT_HISTORY_V9 — embedded, zero-network, same-origin local archive. */
+(function(){'use strict';
+const KEY='archiflow_project_library_v9';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const utc=()=>new Date().toISOString();
+const when=s=>{try{return new Date(s).toLocaleString('zh-CN',{hour12:false})}catch{return s||'—'}};
+const clone=x=>JSON.parse(JSON.stringify(x));
+let library={version:9,active:null,projects:[]},busy=false,timer=null,lastError='';
+const current=()=>library.projects.find(p=>p.id===library.active);
+const id=()=>`project-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+function projectLabel(p){return [p?.main?.confirmed?.name,p?.main?.designProgram?.customUnit||p?.response?.project?.unit].filter(Boolean).join(' / ')||'未命名的建筑项目'}
+function collect(){const main=clone(state);let response=null;try{response=clone(window.unifiedResponseAPI?.pack?.()||null)}catch(e){console.warn('响应数据无法打包',e)}return {format:'ARCHIFLOW_UNIFIED_V8',main,response,exportedAt:utc()}}
+function signature(s){return JSON.stringify({main:s.main,response:s.response})}
+function setStatus(msg){const el=document.getElementById('pmStatus');if(el)el.textContent=msg;const badge=document.getElementById('pmTopState');if(badge)badge.textContent=msg}
+function saveLibrary(){
+ try{localStorage.setItem(KEY,JSON.stringify(library));lastError='';return true}
+ catch(e){ // Trim historical states before dropping any current project.
+  for(const p of library.projects){while(p.history.length>3)p.history.shift()}
+  try{localStorage.setItem(KEY,JSON.stringify(library));setStatus('存储接近上限；历史版本已压缩，请导出 JSON');return true}
+  catch(err){lastError='浏览器存储容量不足。请立即下载完整项目 JSON，避免数据丢失。';setStatus(lastError);return false}
+ }
+}
+function snapshot(label='自动保存',force=false){if(busy)return;clearTimeout(timer);timer=null;let p=current();if(!p)return;const payload=collect(),sig=signature(payload),last=p.history[p.history.length-1];if(!force&&last&&signature(last.snapshot)===sig){p.current=payload;p.updatedAt=utc();saveLibrary();refreshStatus();return}
+ p.current=payload;p.updatedAt=utc();p.history.push({at:p.updatedAt,label,snapshot:payload});while(p.history.length>16)p.history.shift();saveLibrary();refreshStatus();}
+function ensureBeforeChange(){if(!busy&&current())snapshot('变更前的状态')}
+function queue(){if(busy||!current())return;clearTimeout(timer);timer=setTimeout(()=>snapshot('自动保存'),1600)}
+function refreshStatus(){const p=current();const label=p?.name||'未命名项目';const n=p?.history?.length||0;setStatus((lastError||`${label} · 已在本机保存 · ${n} 个历史版本`));const count=document.getElementById('pmCount');if(count)count.textContent=library.projects.length+' 项'}
+function create(initial,label){const t=utc();return{id:id(),name:label||projectLabel(initial),createdAt:t,updatedAt:t,current:initial,history:[{at:t,label:'起始版本',snapshot:initial}]}}
+function initLibrary(){try{let x=JSON.parse(localStorage.getItem(KEY)||'null');if(x?.version===9&&Array.isArray(x.projects)){library=x;library.projects=library.projects.filter(p=>p?.id&&p.current?.main&&Array.isArray(p.history));}}
+ catch(e){console.warn('历史档案解析失败',e)}
+ if(!library.projects.length){let snap=collect();const p=create(snap,projectLabel(snap));library.projects=[p];library.active=p.id;saveLibrary()}
+ if(!current())library.active=library.projects[0].id;
+ const p=current(),before=state?.saveAt||'',archived=p?.current?.main?.saveAt||'';
+ if(p?.current&&archived>=before){try{apply(p.current,false)}catch(e){console.warn('历史项目恢复失败',e)}}
+ else snapshot('从 V8 旧草稿自动迁入',true);
+ refreshStatus();}
+function apply(doc,persistArchive=true){if(!doc||!doc.main)throw Error('项目文件缺少 main 研究数据');busy=true;
+ try{state={...defaults(),...clone(doc.main)};if(!state.selection||!state.custom){state.selection=defaults().selection;state.custom={}};
+  state.step=Number.isInteger(state.step)?Math.max(0,Math.min(8,state.step)):0;
+  localStorage.setItem('moore_choice_v4',JSON.stringify(state));
+  render();const studio=window._unifiedStudio||document.getElementById('offStudio');if(studio&&!studio.isConnected){document.body.append(studio);studio.hidden=true;}
+  if(doc.response&&window.unifiedResponseAPI?.restore){window.unifiedResponseAPI.restore(clone(doc.response))}
+  if(state.step===7&&window.unifiedResponseAPI?.sync)window.unifiedResponseAPI.sync(programHandoff());
+  if(persistArchive){const p=current();if(p){p.current=collect();p.updatedAt=utc();saveLibrary()}}
+ }finally{busy=false}refreshStatus();}
+function restoreProject(pid){if(!current()||pid!==library.active)snapshot('切换项目前保存');const p=library.projects.find(p=>p.id===pid);if(!p)return;library.active=p.id;saveLibrary();apply(p.current);closePanel();}
+function rememberNewProject(){snapshot('新建项目前');busy=true;try{state=defaults();localStorage.setItem('moore_choice_v4',JSON.stringify(state));window.unifiedResponseAPI?.restore?.({format:'ARCHIFLOW_OFFLINE_V7',project:{version:6,site:'',unit:'',rooms:[]},rooms:[],versions:[],layout:'compact',hazard:'heat',tech:0,plotW:42,plotD:33,levels:1,story:3.6,sev:50,manual:45});render();const studio=window._unifiedStudio||document.getElementById('offStudio');if(studio&&!studio.isConnected){document.body.append(studio);studio.hidden=true;}}finally{busy=false}
+ const doc=collect(); // Response model is reset when the new project later selects a site/unit.
+ const p=create(doc,'新项目 '+(library.projects.length+1));library.projects.unshift(p);library.active=p.id;saveLibrary();closePanel();refreshStatus();}
+function saveNamedVersion(){snapshot('保存命名前');const p=current();if(!p)return;const name=prompt('为这次设计版本命名：','方案草稿 '+when(utc()));if(name===null)return;snapshot(name.trim().slice(0,70)||'手动存档',true);showPanel();}
+function restoreVersion(idx){const p=current(),v=p?.history?.[idx];if(!v)return;if(!confirm(`恢复「${v.label}」 (${when(v.at)})？\n恢复前会保留当前版本，之后还可以再找回。`))return;snapshot('恢复历史前的备份',true);apply(v.snapshot);snapshot('恢复：'+v.label,true);showPanel();}
+function undo(){const p=current();if(!p){alert('尚无项目');return}snapshot('撤销前状态');const len=p.history.length;if(len<2){alert('当前没有更早的历史版本');return}const nowSig=signature(collect());let prev=null;for(let i=len-2;i>=0;i--){if(signature(p.history[i].snapshot)!==nowSig){prev=p.history[i];break}}if(!prev){alert('尚无可回退的不同版本');return}apply(prev.snapshot);snapshot('撤销：恢复先前版本',true);showPanel()}
+function rename(pid){const p=library.projects.find(x=>x.id===pid);if(!p)return;const s=prompt('项目名称',p.name);if(s===null)return;p.name=s.trim().slice(0,90)||p.name;saveLibrary();showPanel()}
+function drop(pid){if(library.projects.length===1){alert('必须保留至少一个项目。可点击“新建空白项目”开始新项目。');return}const p=library.projects.find(x=>x.id===pid);if(!p||!confirm(`删除本机项目「${p.name}」及其全部历史？此操作不可撤销。建议先导出备份。`))return;library.projects=library.projects.filter(x=>x.id!==pid);if(library.active===pid){library.active=library.projects[0].id;apply(current().current)}saveLibrary();showPanel()}
+function exportProject(){snapshot('导出前保存');const p=current();const doc={...collect(),savedName:p?.name||'未命名项目',archive:'ARCHIFLOW_PROJECT_V9',historyCount:p?.history?.length||0};download('ArchiFlow_Project_'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(doc,null,2),'application/json')}
+function exportLibrary(){snapshot('导出全档案');download('ArchiFlow_Project_Library_Backup_v9.json',JSON.stringify({format:'ARCHIFLOW_LIBRARY_V9',library},null,2),'application/json')}
+function download(name,body,type){let u=URL.createObjectURL(new Blob([body],{type:(type||'text/plain')+';charset=utf-8'})),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000)}
+function importV6(prog){if(!Array.isArray(prog?.rooms))throw Error('任务书缺少功能 rooms');const main=defaults();const site=String(prog.site||'场地待核实（从旧任务书导入）').trim();main.confirmed={name:site,region:String(prog.region||''),lat:null,lon:null,decision:'从已有任务书恢复，精确位置与场地证据仍需核实'};
+ const mat=UNIT_CATALOG.find(x=>x.title===prog.unit||x.id===prog.unit);const base=defaultProgram();main.designProgram={...base,siteKey:site,unit:mat?.id||'custom',customUnit:mat?'':String(prog.unit||'导入的建筑单元'),beneficiary:String(prog.user||prog.beneficiary||''),mission:String(prog.mission||''),count:String(prog.count||''),duration:String(prog.duration||''),intervention:prog.intervention||'compare',scheme:['compact','linear','separate'].includes(prog.scheme)?prog.scheme:'compact',notes:String(prog.notes||''),rooms:prog.rooms.map((r,i)=>({id:'restored-'+i,name:String(r.name||'未命名功能'),area:Math.max(0,Number(r.area)||0),type:['main','support','service','ecology'].includes(r.type)?r.type:'support',enabled:r.enabled!==false}))};main.step=7;main.research={};return{format:'ARCHIFLOW_UNIFIED_V8',main,response:null,exportedAt:utc()}}
+function parseMarkdown(txt){const field=(k)=>{const re=new RegExp('^\\s*-\\s*'+k+'[：:]\\s*(.+?)\\s*$','m');return (txt.match(re)?.[1]||'').replace(/\*\*/g,'').trim()};const data={version:6,site:field('候选真实研究场地')||field('场地')||field('研究地点'),region:field('研究区所属位置'),unit:field('设计单元')||field('建筑单元'),user:field('主要使用者')||field('使用者'),mission:field('类型任务')||field('研究任务'),count:field('人数 / 物种 / 对象数量'),duration:field('使用时间与持续周期'),rooms:[],scheme:'compact'};
+ const sch=field('当前选择的概念组织')||field('布局策略');data.scheme=/线性|梯度|B\s*\//.test(sch)?'linear':/分离|多核|C\s*\//.test(sch)?'separate':'compact';
+ for(const line of txt.split(/\r?\n/)){const cols=line.trim().split('|').slice(1,-1).map(x=>x.trim());if(cols.length>=4&& /^\d+(?:\.\d+)?$/.test(cols[2].replace(/,/g,''))){data.rooms.push({name:cols[0],type:/设备|维护/.test(cols[1])?'service':/主要/.test(cols[1])?'main':'support',area:Number(cols[2].replace(/,/g,'')),enabled:!(/未纳入|不纳入|否|排除/.test(cols[3]))})}}
+ if(!data.rooms.length){const section=txt.split(/##\s*11\s+PLAN/)[1]||'';for(const x of section.matchAll(/^-\s*([^\n：:]+)[：:]\s*(\d+(?:\.\d+)?)\s*m²/gm))data.rooms.push({name:x[1].trim(),area:+x[2],type:'support',enabled:true})}
+ if(!data.unit&&!data.site&&!data.rooms.length)throw Error('没有找到可识别的建筑任务书字段；请使用导出的项目 JSON 才能完整恢复');
+ const doc=importV6(data);doc.restoreNotice='仅恢复 Markdown 文本中存在的字段；没有原始平面几何、资料来源与历史版本。';return doc}
+function parseInput(text,ext){if(ext==='md'||ext==='txt')return parseMarkdown(text);let obj=JSON.parse(text);if(obj?.format==='ARCHIFLOW_LIBRARY_V9'&&obj.library?.projects)return {kind:'library',library:obj.library};
+ if(obj?.format==='ARCHIFLOW_UNIFIED_V8'||(obj?.main&&obj?.response)){if(!obj.main)throw Error('主项目内容丢失');return obj}
+ if(obj?.version===6&&Array.isArray(obj.rooms))return importV6(obj);
+ if(obj?.format==='ARCHIFLOW_OFFLINE_V7'&&obj.project?.rooms){let doc=importV6(obj.project);doc.response=obj;return doc}
+ if(obj?.project?.rooms)return importV6(obj.project);
+ if(obj?.selection&&typeof obj.step==='number')return{format:'ARCHIFLOW_UNIFIED_V8',main:{...defaults(),...obj},response:null,exportedAt:utc()};
+ throw Error('无法识别文件。建议从网页导出完整项目 JSON，或使用本系统生成的 Markdown 任务书')}
+function addImported(doc,name){if(!doc?.main||typeof doc.main!=='object')throw Error('缺少项目状态');snapshot('导入新项目前');let p=create(doc,String(name||projectLabel(doc)).replace(/\.(json|md|txt)$/i,'').slice(0,90));p.name=projectLabel(doc)||p.name;library.projects.unshift(p);library.active=p.id;saveLibrary();try{apply(doc);snapshot('文件导入',true)}catch(e){library.projects=library.projects.filter(x=>x.id!==p.id);library.active=library.projects[0]?.id;saveLibrary();throw e}closePanel()}
+async function handleFile(file){if(!file)return;try{const ext=file.name.split('.').pop().toLowerCase();if(!['json','md','txt'].includes(ext))throw Error('只接受 JSON、Markdown (.md) 或 .txt');const data=parseInput(await file.text(),ext);
+ if(data.kind==='library'){const items=data.library.projects.filter(p=>p?.current?.main&&Array.isArray(p.history));if(!items.length)throw Error('全档案中没有可恢复项目');if(!confirm(`从备份导入 ${items.length} 个项目？将保留当前项目，可能产生重复记录。`))return;snapshot('导入档案前');for(const p of items){let q=clone(p);q.id=id();q.name=(q.name||'导入项目').slice(0,90);library.projects.unshift(q)}saveLibrary();showPanel();return}
+ let warning=data.restoreNotice||(!data.response?'当前文件未包含完整的可编辑响应模型或历史数据，只能恢复现有字段。':'');if(warning&&!confirm(warning+'\n\n仍要作为一个新项目导入吗？'))return;addImported(data,file.name)}catch(e){alert('导入失败：'+e.message)}}
+function openPanel(){document.getElementById('pmOverlay').hidden=false;showPanel()}
+function closePanel(){document.getElementById('pmOverlay').hidden=true;refreshStatus()}
+function showPanel(){const root=document.getElementById('pmBody');if(!root)return;root.replaceChildren();const p=current();for(const item of library.projects){const card=document.createElement('article');card.className='pmProject'+(item.id===library.active?' active':'');const title=document.createElement('strong');title.textContent=item.name;const sub=document.createElement('div');sub.className='pmMeta';sub.textContent=(item.current.main.confirmed?.name||'场地未选')+' · '+(item.current.main.designProgram?.customUnit||item.current.response?.project?.unit||'建筑单元待定')+' · '+when(item.updatedAt);const bar=document.createElement('div');bar.className='pmActions';const add=(label,fn)=>{const b=document.createElement('button');b.textContent=label;b.type='button';b.onclick=fn;bar.append(b)};add(item.id===library.active?'当前项目 ✓':'继续编辑',()=>restoreProject(item.id));add('重命名',()=>rename(item.id));add('删除',()=>drop(item.id));card.append(title,sub,bar);root.append(card)}
+ const history=document.getElementById('pmHistory');history.replaceChildren();const list=p?.history||[];for(let i=list.length-1;i>=0;i--){const item=list[i],row=document.createElement('div');row.className='pmHistoryItem';const txt=document.createElement('span');txt.textContent=item.label+' · '+when(item.at);const b=document.createElement('button');b.type='button';b.textContent='恢复这版';b.onclick=()=>restoreVersion(i);row.append(txt,b);history.append(row)}refreshStatus()}
+function build(){const style=document.createElement('style');style.textContent=`#pmTop{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto}#pmTop button,#pmSideBtn{border:1px solid #8ab5a2;background:#e5eee7;color:#22493b;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:750;cursor:pointer}#pmTop .pmUndo{background:#fff}#pmTopState{color:#506c5c;font-size:11px}#pmSideBtn{width:100%;margin:8px 0;text-align:left}#pmOverlay{position:fixed;inset:0;z-index:12000;background:#0a2019a8;display:flex;align-items:center;justify-content:center;padding:14px}#pmOverlay[hidden]{display:none!important}.pmModal{width:min(940px,100%);max-height:94vh;background:#f6f6f1;border-radius:10px;box-shadow:0 20px 65px #0005;overflow:auto;padding:23px;color:#1d3b32}.pmHeader{display:flex;gap:20px;align-items:flex-start;justify-content:space-between}.pmHeader h2{font-size:24px;margin:0 0 6px}.pmModal button{cursor:pointer}.pmControls{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}.pmControls button{padding:9px 11px;border:1px solid #b4c8bd;background:white;border-radius:5px;font-size:12px;color:#214c3e;font-weight:750}.pmControls button:first-child{background:#285845;color:white}.pmGrid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(230px,.8fr);gap:17px}.pmProject{background:white;padding:12px;border:1px solid #cad7cd;border-radius:7px;margin:7px 0}.pmProject.active{border:2px solid #30735c}.pmProject strong{display:block;font-size:14px}.pmMeta{font-size:11px;color:#708079;overflow-wrap:anywhere;margin:4px 0 7px}.pmActions{display:flex;flex-wrap:wrap;gap:7px}.pmActions button,.pmHistoryItem button{background:#eef3ee;color:#295c48;border:1px solid #cedbd2;border-radius:4px;padding:5px 8px;font-size:11px}.pmHistoryItem{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:8px 0;border-bottom:1px solid #d9e0d9;font-size:11px}.pmHistoryItem span{max-width:74%;overflow-wrap:anywhere}.pmNote{font-size:12px;color:#5b6b62;background:#e9ede7;padding:10px 12px;border-left:3px solid #c27c51;line-height:1.7}.pmPanelTitle{font-size:14px;margin:14px 0 7px}@media(max-width:720px){.pmGrid{grid-template-columns:1fr}.pmModal{padding:14px}.pmHeader h2{font-size:20px}#pmTopState{display:none}}`;
+ document.head.append(style);
+ const top=document.createElement('div');top.id='pmTop';top.innerHTML='<button type="button" id="pmOpen">📁 我的项目 / 历史 <span id="pmCount"></span></button><button type="button" class="pmUndo" id="pmUndo">↶ 撤销误操作</button><span id="pmTopState">本机草稿自动保存中</span>';document.querySelector('.topbar')?.append(top);
+ const b=document.createElement('button');b.id='pmSideBtn';b.textContent='📁 打开我的项目 / 恢复历史';document.querySelector('.side-nav')?.after(b);
+ const overlay=document.createElement('div');overlay.id='pmOverlay';overlay.hidden=true;overlay.innerHTML=`<div class="pmModal" role="dialog" aria-modal="true" aria-label="我的项目历史"><div class="pmHeader"><div><div style="font-size:11px;color:#9a623e;letter-spacing:.12em">ARCHIFLOW / LOCAL PROJECT LIBRARY</div><h2>我的项目 · 历史与导入</h2><p id="pmStatus" class="pmMeta">自动保存状态</p></div><button id="pmClose" type="button" style="border:0;background:none;font-size:24px">×</button></div><div class="pmNote">数据保存在当前浏览器的本地存储中，断网可使用。<b>不同设备、不同浏览器和 GitHub 网站与本地文件不保证共享历史。</b> 清理浏览器数据会使本机历史丢失，请定期导出 JSON 备份。Markdown 只能恢复可解析的字段，不能还原图形与证据来源。每项目保留最近 16 次快照，请另存完整 JSON 备份。</div><div class="pmControls"><button id="pmNew" type="button">＋ 新建空白项目</button><button id="pmSave" type="button">保存命名版本</button><button id="pmImport" type="button">导入旧任务书 .md / 项目 .json</button><button id="pmDownload" type="button">下载当前项目 JSON</button><button id="pmAll" type="button">备份全部项目与历史</button></div><input id="pmFile" type="file" accept=".md,.json,.txt,application/json,text/markdown,text/plain" hidden><div class="pmGrid"><div><h3 class="pmPanelTitle">项目列表 · 点击继续设计</h3><div id="pmBody"></div></div><div><h3 class="pmPanelTitle">当前项目历史 · 选择任意节点回退</h3><div id="pmHistory"></div></div></div></div>`;document.body.append(overlay);
+ document.getElementById('pmOpen').onclick=openPanel;b.onclick=openPanel;document.getElementById('pmUndo').onclick=undo;document.getElementById('pmClose').onclick=closePanel;overlay.addEventListener('click',e=>{if(e.target===overlay)closePanel()});document.getElementById('pmNew').onclick=rememberNewProject;document.getElementById('pmSave').onclick=saveNamedVersion;document.getElementById('pmImport').onclick=()=>document.getElementById('pmFile').click();document.getElementById('pmDownload').onclick=exportProject;document.getElementById('pmAll').onclick=exportLibrary;document.getElementById('pmFile').onchange=async e=>{const f=e.target.files?.[0];e.target.value='';await handleFile(f)};
+ // Auto-save is independent of which stage is displayed, and includes response settings.
+ const basePersist=persist;persist=function(){basePersist();queue()};
+ document.addEventListener('pointerdown',e=>{if(e.target.closest('#pmOverlay,#pmTop,#pmSideBtn'))return;const target=e.target.closest('button');if(target&&(target.closest('#mainContent .choice-grid,#mainContent .program-buttons,#sideNav,#mainContent .option-card')||target.textContent?.includes('确定场地')))ensureBeforeChange()},true);
+ document.addEventListener('input',e=>{if(!e.target.closest('#pmOverlay'))queue()},true);
+ document.addEventListener('change',e=>{if(!e.target.closest('#pmOverlay'))queue()},true);
+ document.addEventListener('pointerup',e=>{if(e.target.closest('#offPlan,#offStudio'))queue()},true);
+ window.addEventListener('pagehide',()=>snapshot('离开前自动保存'));
+ window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!overlay.hidden)closePanel()});
+ initLibrary();}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build,{once:true});else build();
+window.archiflowHistory={open:openPanel,checkpoint:snapshot,undo,importText:(text,ext='md')=>addImported(parseInput(text,ext),'导入的任务书'),all:()=>clone(library),flush:()=>snapshot('测试保存')};
+})();
+
+</script>
 </body></html>
