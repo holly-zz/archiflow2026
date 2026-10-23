@@ -647,4 +647,30 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 </script>
 <script>document.getElementById("devQuickOpen")?.addEventListener("click",()=>window.MooreDev?.open());</script>
+<!-- ARCHIFLOW V11 / game lab is part of the same project, no second taskbook -->
+<style>
+#gcOpen{position:fixed;bottom:18px;right:20px;z-index:8990;background:#c6754a;color:#fff;border:0;border-radius:5px;box-shadow:0 7px 24px #18382e47;font-weight:800;letter-spacing:.01em;padding:13px 19px;font-size:13px;cursor:pointer}
+#gcOpen:hover{background:#af5c36}#gcPanel{position:fixed;inset:1.2vh 1vw;z-index:9000;background:#f0f0ea;border:1px solid #71877e;border-radius:8px;box-shadow:0 18px 50px #091a1670;display:flex;flex-direction:column;overflow:hidden}
+#gcPanel[hidden]{display:none!important}#gcPanel .gcHead{background:#17352f;color:#fff;display:flex;gap:15px;align-items:center;justify-content:space-between;padding:9px 13px;font-size:13px}#gcPanel .gcHead strong{font-weight:900}#gcPanel .gcHead button{background:#edf0ec;color:#243b32;border:0;border-radius:3px;padding:7px 12px;font-weight:700;cursor:pointer}
+#gcFrame{flex:1;width:100%;border:0;background:#f4f3ed}
+@media(max-width:740px){#gcPanel{inset:0;border-radius:0}#gcOpen{bottom:8px;right:8px;font-size:11px;padding:10px}}
+</style>
+<button id="gcOpen" type="button">❄ 气候事件 · 3D 游戏漫游 ↗</button>
+<section id="gcPanel" hidden aria-label="气候事件与三维漫游游戏">
+  <div class="gcHead"><strong>ARCHIFLOW 2026 / SITE → GAME → CRIT　·　同一项目的游戏实验</strong><button id="gcClose" type="button">关闭，回到唯一任务书 ✕</button></div>
+  <iframe id="gcFrame" title="ARCHIFLOW Climate Game Lab" allow="fullscreen" loading="lazy" data-online-src="game-lab/"></iframe>
+</section>
+<script>
+/* ARCHIFLOW_V11_EMBED — one authoritative project & taskbook */
+(function(){'use strict';const root=document.getElementById('gcPanel'),frame=document.getElementById('gcFrame');if(!root||!frame)return;
+const KEY='archiflow-embedded-game-v11-summary';let last=null;try{last=JSON.parse(localStorage.getItem(KEY)||'null')}catch{}
+const oldExport=window.unifiedProjectExport;if(typeof oldExport==='function')window.unifiedProjectExport=function(){const v=oldExport();let g=last;try{g=JSON.parse(localStorage.getItem(KEY)||'null')||last}catch{};return {...v,game:g||null}};
+const oldImport=window.unifiedProjectImport;if(typeof oldImport==='function')window.unifiedProjectImport=function(v){const value=oldImport(v);try{if(v?.game){last=v.game;localStorage.setItem(KEY,JSON.stringify(v.game))}}catch{}return value};
+const oldBrief=window.programBrief;if(typeof oldBrief==='function')window.programBrief=function(){let v=oldBrief();let g=last;try{g=JSON.parse(localStorage.getItem(KEY)||'null')||last}catch{}if(g)return v+'\n\n## 14 CLIMATE GAME / 事件与空间响应 [H/V]\n- 方案：'+g.scheme+'；事件：'+g.event+'；假设人数：'+g.visitors+'\n- 手动隔断已展开：'+(g.manualPanel?'是':'否')+'；课堂Crit：'+g.score+'/100\n- 气象数据层：'+g.source+'；资料仅可作为场景输入，非室内热工验证。\n- 待核实：'+(g.risks||[]).join('；')+'\n';return v};
+function open(){root.hidden=false;document.body.style.overflow='hidden';if(!frame.dataset.initialized){let tpl=document.getElementById('gcOfflineDocument');if(tpl){frame.srcdoc=tpl.textContent;frame.dataset.initialized='yes'}else{frame.src=frame.dataset.onlineSrc;frame.dataset.initialized='yes'}}}
+function close(){root.hidden=true;document.body.style.overflow=''}
+document.getElementById('gcOpen').onclick=open;document.getElementById('gcClose').onclick=close;window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!root.hidden)close()});
+window.addEventListener('message',e=>{if(e.source!==frame.contentWindow||!e.data)return;if(e.data.type==='ARCHIFLOW_V11_REQUEST_CONTEXT'){let p=typeof window.unifiedProjectExport==='function'?window.unifiedProjectExport():null;try{e.source.postMessage({type:'ARCHIFLOW_V11_CONTEXT',project:p},e.origin==='null'?'*':e.origin)}catch{}}if(e.data.type==='ARCHIFLOW_V11_GAME_STATE'){last=e.data.summary;try{localStorage.setItem(KEY,JSON.stringify(last))}catch{}}});
+})();
+</script>
 </body></html>
