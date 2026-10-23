@@ -28,10 +28,11 @@ jobs:
           assert "ARCHIFLOW_UNIFIED_V8" in content
           assert "ARCHIFLOW_PROJECT_HISTORY_V9" in content
           assert "ARCHIFLOW_DESIGN_DEVELOPMENT_V10" in content
+          assert "ARCHIFLOW_V11_EMBED" in content
           assert "window.unifiedResponseAPI" in content
           assert 'id="offStudio"' in content
           scripts = re.findall(r"<script>(.*?)</script>", content, re.S)
-          assert len(scripts) == 5, f"Unexpected number of scripts: {len(scripts)}"
+          assert len(scripts) == 6, f"Unexpected number of scripts: {len(scripts)}"
           for i, js in enumerate(scripts):
               Path(f"/tmp/archiflow-unified-{i}.js").write_text(js, encoding="utf-8")
           PY
@@ -40,6 +41,17 @@ jobs:
           node --check /tmp/archiflow-unified-2.js
           node --check /tmp/archiflow-unified-3.js
           node --check /tmp/archiflow-unified-4.js
+          node --check /tmp/archiflow-unified-5.js
+          python3 - <<'PY2'
+          import re
+          from pathlib import Path
+          code = Path("game-lab/index.html").read_text(encoding="utf-8")
+          assert "ARCHIFLOW CLIMATE GAME V11" in code
+          blocks = re.findall(r"<script>(.*?)</script>",code,re.S)
+          assert len(blocks)==1
+          Path("/tmp/archiflow-game-v11.js").write_text(blocks[0],encoding="utf-8")
+          PY2
+          node --check /tmp/archiflow-game-v11.js
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
