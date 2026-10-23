@@ -27,16 +27,19 @@ jobs:
           content = Path("index.html").read_text(encoding="utf-8")
           assert "ARCHIFLOW_UNIFIED_V8" in content
           assert "ARCHIFLOW_PROJECT_HISTORY_V9" in content
+          assert "ARCHIFLOW_DESIGN_DEVELOPMENT_V10" in content
           assert "window.unifiedResponseAPI" in content
           assert 'id="offStudio"' in content
           scripts = re.findall(r"<script>(.*?)</script>", content, re.S)
-          assert len(scripts) == 3, f"Unexpected number of scripts: {len(scripts)}"
+          assert len(scripts) == 5, f"Unexpected number of scripts: {len(scripts)}"
           for i, js in enumerate(scripts):
               Path(f"/tmp/archiflow-unified-{i}.js").write_text(js, encoding="utf-8")
           PY
           node --check /tmp/archiflow-unified-0.js
           node --check /tmp/archiflow-unified-1.js
           node --check /tmp/archiflow-unified-2.js
+          node --check /tmp/archiflow-unified-3.js
+          node --check /tmp/archiflow-unified-4.js
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
